@@ -1,0 +1,67 @@
+{
+  "01_leaky_scaler_before_split.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: escalador ajustado antes de train_test_split."
+  },
+  "02_clean_scaler_after_split.py": {
+    "fuga": false,
+    "ast_debe_detectar": false,
+    "descripcion": "Limpio: se parte primero y el escalador solo ve entrenamiento."
+  },
+  "03_leaky_selectkbest_cv.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: SelectKBest con y completo antes de la validación cruzada."
+  },
+  "04_clean_make_pipeline.py": {
+    "fuga": false,
+    "ast_debe_detectar": false,
+    "descripcion": "Limpio: make_pipeline dentro de cross_val_score."
+  },
+  "05_leaky_refit_on_test_data.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: el escalador se re-ajusta con X_test."
+  },
+  "06_clean_named_pipeline_steps.py": {
+    "fuga": false,
+    "ast_debe_detectar": false,
+    "descripcion": "Limpio: Pipeline con pasos nombrados."
+  },
+  "07_leaky_imputer_dataframe.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: imputación sobre DataFrame antes de la validación cruzada."
+  },
+  "08_leaky_inside_helper_function.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: el preprocesamiento global está escondido en una función auxiliar."
+  },
+  "09_leaky_import_alias.py": {
+    "fuga": true,
+    "ast_debe_detectar": false,
+    "descripcion": "Fuga con alias: 'StandardScaler as SS'. LIMITACIÓN CONOCIDA del AST; el runtime sí la ve."
+  },
+  "10_leaky_train_fit_then_cv.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga leve: escalador ajustado con X_train y luego CV dentro de X_train."
+  },
+  "11_clean_no_transformers.py": {
+    "fuga": false,
+    "ast_debe_detectar": false,
+    "descripcion": "Limpio: random forest sin preprocesamiento."
+  },
+  "12_leaky_reassigns_same_variable.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: X = scaler.fit_transform(X) y luego se parte."
+  },
+  "13_leaky_separate_fit_transform.py": {
+    "fuga": true,
+    "ast_debe_detectar": true,
+    "descripcion": "Fuga: selector.fit(X, y) y selector.transform(X) antes de partir."
+  }
+}

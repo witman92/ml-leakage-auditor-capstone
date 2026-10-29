@@ -1,7 +1,7 @@
 """
 Pipeline CONTROLADO  |  dataset D5 (california_housing, regresion)  |  modelo MLP  |  fuga SELECCION  |  versión LEAKY
 
-Generado automáticamente por 02_pipelines/generar_pares_controlados.py (no editar a mano).
+Generado automáticamente por 02_pipelines/generate_controlled_pairs.py (no editar a mano).
 Esta versión TIENE fuga: los transformadores se ajustan con todas las filas antes de validar.
 """
 import pathlib

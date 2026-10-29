@@ -1,3 +1,0 @@
-conjunto,detector,TP,TN,FP,FN,precision,recall,f1,VPN
-banco (192),Regla simple (línea base),72,96,0,24,1.0,0.75,0.8571,0.8
-independiente (13),Regla simple (línea base),8,3,1,1,0.8889,0.8889,0.8889,0.75

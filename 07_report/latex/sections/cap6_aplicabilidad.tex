@@ -1,0 +1,44 @@
+% ========================================
+% CAPÍTULO 6: APLICABILIDAD Y USO RESPONSABLE  (criterio 6)
+% ========================================
+
+\chapter{APLICABILIDAD Y USO RESPONSABLE}
+\label{ch:aplicabilidad}
+
+\section{Contexto de uso}
+
+Los usuarios previstos son (1) analistas y estudiantes de ciencia de datos que reciben pipelines de un asistente de IA y (2) equipos que quieren una revisión automática antes de integrar código a un repositorio. La decisión que informa el auditor es: \emph{aceptar, corregir o derivar a revisión humana} un pipeline. Los tres productos comparten el mismo núcleo (\arch{03_auditor/}), de modo que un script recibe el mismo veredicto por cualquier vía.
+
+\section{Propuesta de implementación}
+
+\textbf{Skills para agentes} (\arch{05_skills/}). \texttt{audit-ml-leakage} audita y repara scripts existentes; \texttt{create-\allowbreak leakage-\allowbreak free-\allowbreak pipeline} impone reglas al crear código (todo preprocesamiento dentro de un \texttt{Pipeline}, prueba final apartada, semillas fijas) y exige autoverificarse con el auditor antes de entregar. Cada Skill es una carpeta autocontenida que se copia al directorio de Skills del agente. La herramienta de línea de comandos devuelve el código de salida 0 (limpio) o 1 (fuga), por lo que también puede bloquear una integración continua.
+
+\textbf{Plataforma web en Streamlit} (\arch{06_web_app/}), pensada para quien no usa agentes de programación. Su diseño separa tres capas: la interfaz (\arch{app.py}), que solo dibuja pantallas; la lógica (\arch{app_logic.py}), que valida la entrada, invoca al auditor, resalta líneas y calcula diferencias, y que se prueba sin navegador; y el núcleo auditor compartido. El flujo de uso tiene cuatro pestañas: (1) \emph{auditar y reparar}: el usuario pega o sube un \texttt{.py}, ve en rojo las líneas con fuga y la regla que las explica, y puede descargar la versión corregida junto con sus diferencias; (2) \emph{cuánto infla la fuga}: consulta \DOpt{} para cualquier combinación de dataset, familia y tipo de fuga del experimento; (3) \emph{resultados del experimento}: eficacia del auditor y pruebas por familia; y (4) \emph{guía}: qué es la fuga, ejemplos y limitaciones.
+
+\emph{Requisitos:} Python (probado con la versión 3.13), scikit-learn y Streamlit, con versiones fijas en \arch{requirements.txt}. \emph{Condiciones de uso:} scripts tabulares con scikit-learn; los notebooks se exportan a \texttt{.py}. \emph{Verificación hecha:} pruebas automáticas que cubren el auditor, la reparación, las Skills y el arranque de la plataforma web. \emph{Monitoreo:} registrar los falsos negativos que reporten los usuarios y convertirlos en casos de prueba. \textbf{Aún no se ha hecho una prueba de uso con personas}; el producto es un prototipo y esa prueba queda para Capstone~II.
+
+\section{Riesgos éticos y medidas}
+
+La Tabla~\ref{tab:etica} identifica los riesgos propios de este caso y la medida concreta que los aborda, junto con la forma de comprobar que la medida existe.
+
+\begin{table}[!htbp]
+\centering
+\caption{Riesgos de uso responsable, medidas y verificación.}
+\label{tab:etica}
+\begingroup\scriptsize\singlespacing
+\begin{tabular}{@{}p{2.6cm} p{4.4cm} p{4.6cm} p{3.2cm}@{}}
+\toprule
+Riesgo & Por qué aplica a este proyecto & Medida concreta & Verificación \\
+\midrule
+Falsa seguridad & «0 fugas» puede leerse como «sin fuga», pero no se ven fugas temporales, de dominio, por duplicados ni código dinámico & La web, la línea de comandos y las Skills muestran que el resultado significa «sin evidencia de las reglas R-Split, R-CV y R-Test» & Texto visible en la pestaña 1 y en ambos \arch{SKILL.md} \\
+Ejecución de código no confiable & El código de LLM o de usuarios puede ser malicioso & La web solo lee el código (AST) y nunca lo ejecuta; rechaza entradas de más de 200.000 caracteres y escapa el HTML; el código de LLM se ejecutará solo en un contenedor sin red ni credenciales & Pruebas automáticas de escape de HTML y de límite de tamaño \\
+Datos sensibles & \texttt{breast\_cancer} y \texttt{diabetes} son datos clínicos & Se usan solo conjuntos públicos y anonimizados de scikit-learn, sin fines clínicos; la web no guarda el código que se le entrega & Carga desde \texttt{sklearn.datasets}; sin almacenamiento en la aplicación \\
+Sesgo del instrumento & El auditor se probó con estilos de un solo autor & Evaluación independiente separada del banco; se informan los fallos conocidos (alias de importación) & Tabla~\ref{tab:indep}; casos 05 y 09 \\
+Términos de servicio & Las salidas de las APIs de LLM pueden tener restricciones de publicación & Revisar los términos de cada proveedor antes de publicar el Conjunto A & Registro en \arch{decision_log.md} \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+\nota{No se evalúa la equidad de los modelos entrenados porque no es el objeto del estudio; se declara como límite.}
+
+\textbf{Declaración de uso de inteligencia artificial.} El problema, las ideas, el diseño del estudio y el borrador del informe son del autor. Se utilizó un asistente de programación basado en IA como apoyo para implementar y comentar el código, organizar el repositorio y editar la redacción a partir de ese borrador. Las cifras provienen de la ejecución del código y se contrastaron con los archivos de resultados; el autor es responsable del contenido y de su defensa.

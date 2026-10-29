@@ -1,0 +1,42 @@
+% ========================================
+% ANEXOS (no cuentan en la extensión del informe)
+% ========================================
+
+\anexo{REPRODUCIBILIDAD Y REPOSITORIO}
+\label{an:repro}
+
+\textbf{Repositorio:} \url{https://github.com/witman92/ml-leakage-auditor-capstone}.
+
+Todas las tablas y figuras de este informe se generan en \arch{04_experiments/results/} y se reproducen con:
+
+\begin{footnotesize}
+\begin{verbatim}
+pip install -r requirements.txt
+python 04_experiments/leakage_demo.py   # ejemplo visual (Figura 1.2)
+python run_all.py                       # fases 0-5, estadistica, figuras y pruebas
+python run_all.py --rapido              # verificacion rapida (2 datasets x 2 familias)
+streamlit run 06_web_app/app.py         # plataforma web
+\end{verbatim}
+\end{footnotesize}
+
+\textbf{Estructura del repositorio.} Cada carpeta numerada corresponde a una fase del protocolo (Tabla~\ref{tab:etapas}):
+
+\begin{footnotesize}
+\begin{verbatim}
+ml-leakage-auditor-capstone/
+|-- run_all.py                  # reproduce todo con un comando
+|-- requirements.txt            # versiones fijas (Python 3.13)
+|-- 01_data/                    # Fase 0: carga de los 6 datasets de scikit-learn
+|-- 02_pipelines/               # Fase 1: banco de 96 pares (controlled_pairs/),
+|                               #   reparados (repaired_pairs/) y Conjunto A (llm_generated/)
+|-- 03_auditor/                 # Fase 2: AST, verificador en ejecucion, refactorizador, CLI
+|-- 04_experiments/             # Fases 3-4: benchmark, EDA, estadistica, demo, linea base
+|   `-- results/                #   tablas (.csv), figuras (.png), manifiesto de ejecucion
+|-- 05_skills/                  # Fase 5: dos Agent Skills autocontenidas
+|-- 06_web_app/                 # Fase 5: plataforma web en Streamlit
+|-- 07_report/                  # informe LaTeX, registro de decisiones, checklist
+`-- 08_tests/                   # pruebas automaticas y 13 casos escritos a mano
+\end{verbatim}
+\end{footnotesize}
+
+Cada script está organizado en bloques numerados (\texttt{\# \%\% PASO n}) que se pueden ejecutar uno a uno en VS Code o en Colab, y cada bloque explica de dónde vienen los datos, qué hace la función, qué métrica o gráfico produce y cómo interpretarlo. \arch{run_benchmark.py} escribe además \arch{run_manifest.json} con las versiones de las librerías y la semilla, y ordena todas las tablas de salida, de modo que dos ejecuciones producen archivos idénticos. La carpeta se abre en VS Code con \arch{capstone.code-workspace}, que trae una tarea por fase. Las decisiones y desviaciones están en \arch{07_report/decision_log.md}.

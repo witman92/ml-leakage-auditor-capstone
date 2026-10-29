@@ -1,0 +1,9 @@
+tarea,familia,n_pares,n_pares_no_cero,delta_opt_medio,mediana,d_cohen_dz,p_wilcoxon_unilateral,p_t_unilateral,ic95_inf,ic95_sup,p_wilcoxon_holm
+clasificacion,GB,9,4,0.00053,0.0,0.44,0.1875,0.1126,-5e-05,0.00133,1.0
+clasificacion,LIN,9,6,4e-05,0.0,0.29,0.1562,0.2074,-4e-05,0.00012,1.0
+clasificacion,MLP,9,7,0.00012,0.00017,0.09,0.3438,0.3989,-0.00075,0.00088,1.0
+clasificacion,RF,9,7,0.00033,0.0,0.43,0.1484,0.1188,-9e-05,0.00083,1.0
+regresion,GB,9,8,0.00623,1e-05,0.32,0.3711,0.1833,-0.00208,0.0199,1.0
+regresion,LIN,9,9,0.00825,0.0,0.34,0.2852,0.1681,-0.00149,0.02498,1.0
+regresion,MLP,9,9,0.01687,0.00739,0.65,0.0371,0.0444,0.00267,0.03459,0.2969
+regresion,RF,9,8,0.00418,0.0,0.29,0.3203,0.2027,-0.00233,0.01421,1.0

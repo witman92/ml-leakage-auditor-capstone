@@ -1,0 +1,15 @@
+192 scripts auditados (banco de control)
+
+=== FASE 3 · Eficacia del auditor (verdad conocida por construcción) ===
+               detector  TP  TN  FP  FN  precision  recall  f1  VPN
+         AST (estático)  96  96   0   0        1.0     1.0 1.0  1.0
+    Runtime (ejecución)  96  96   0   0        1.0     1.0 1.0  1.0
+Híbrido (AST o Runtime)  96  96   0   0        1.0     1.0 1.0  1.0
+
+=== FASE 4 · Reparación automática ===
+Reparados y auditados LIMPIO: 96/96
+
+INTERPRETACIÓN
+  · Híbrido en el banco: precisión 1.00, recall 1.00. Es una evaluación circular (mismo autor del generador y del auditor): confirma que las reglas cubren los patrones diseñados, no que generalicen.
+  · Reparación: 96/96 scripts; diferencia máxima reparado vs. limpio = 0.00e+00 (0 = la reparación no altera el modelo).
+  · Pares degenerados (R² < -1 en algún pliegue): 1.

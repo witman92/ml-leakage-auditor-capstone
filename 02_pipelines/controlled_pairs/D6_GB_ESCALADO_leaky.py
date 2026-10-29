@@ -1,7 +1,7 @@
 """
 Pipeline CONTROLADO  |  dataset D6 (friedman1, regresion)  |  modelo GB  |  fuga ESCALADO  |  versión LEAKY
 
-Generado automáticamente por 02_pipelines/generar_pares_controlados.py (no editar a mano).
+Generado automáticamente por 02_pipelines/generate_controlled_pairs.py (no editar a mano).
 Esta versión TIENE fuga: los transformadores se ajustan con todas las filas antes de validar.
 """
 import pathlib

@@ -1,8 +1,0 @@
-% ========================================
-% CAPÍTULO 7: CONCLUSIONES
-% ========================================
-
-\chapter{CONCLUSIONES}
-\label{ch:conclusiones}
-
-Se construyó un instrumento determinista que detecta fuga de preprocesamiento y selección en scripts de scikit-learn, la repara en los patrones habituales y mide su efecto con un indicador pareado (\DOpt) que separa la fuga del sobreajuste. Funciona perfectamente sobre un banco de control propio y, en una prueba independiente pequeña, el diseño híbrido detectó los 9 casos con fuga, aunque ninguno de sus dos componentes lo logra solo. El efecto medido sobre las métricas fue pequeño con datos de señal fuerte y grande con señal débil, lo que obliga a reformular el objetivo OE3 en términos de señal y ruido. Queda pendiente, y es lo que da sentido al proyecto, medir la fuga en código de LLM reales. Las cifras y el código están en el repositorio y se regeneran con un solo comando.

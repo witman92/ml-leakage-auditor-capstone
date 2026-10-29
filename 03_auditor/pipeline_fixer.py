@@ -1,9 +1,9 @@
+# ==============================================================================
+# pipeline_fixer.py · Refactorizador automático (parte determinista de la Skill de reparación)
+# ==============================================================================
 """
-pipeline_fixer.py  ·  Refactorizador automático (parte determinista de la Skill de reparación).
-
-IDEA EN UNA FRASE
-    Reescribe un script con fuga para que cada transformador se ajuste SOLO con los datos
-    de entrenamiento, sin cambiar el algoritmo, los hiperparámetros ni las particiones.
+Reescribe un script con fuga para que cada transformador se ajuste SOLO con los datos
+de entrenamiento, sin cambiar el algoritmo, los hiperparámetros ni las particiones.
 
 DOS PATRONES QUE SABE ARREGLAR (los más comunes en código generado por LLM)
 
@@ -21,18 +21,35 @@ LO QUE NO ARREGLA (devuelve `requiere_revision_manual = True` con el motivo)
     manual...). Ahí la Skill pide al agente LLM que haga el cambio y vuelva a auditar.
 
 NOTA: el resultado se genera con ast.unparse, por lo que se pierden los comentarios y el
-formato del script original. El comportamiento numérico se verifica en run_benchmark.py.
+formato del script original. El comportamiento numérico se verifica en run_benchmark.py
+(el reparado debe dar exactamente el mismo puntaje que la versión clean).
+
+Uso:  python 03_auditor/pipeline_fixer.py script_con_fuga.py [script_corregido.py]
+Fuente única: 05_skills/sync_skills.py copia este archivo dentro de cada Skill.
 """
 
 import ast
 from pathlib import Path
 
+
+# %% PASO 0 · Dependencias: el refactorizador reutiliza el catálogo y el veredicto del auditor
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : importa TRANSFORMADORES, FUNCIONES_VALIDACION y analizar_codigo, de modo que el
+#              criterio para "reparar" y para "auditar" sea exactamente el mismo.
+# ------------------------------------------------------------------------------
 try:                                        # funciona como script suelto o como módulo
     from ast_leakage_detector import TRANSFORMADORES, FUNCIONES_VALIDACION, analizar_codigo
 except ImportError:                         # pragma: no cover
     from .ast_leakage_detector import TRANSFORMADORES, FUNCIONES_VALIDACION, analizar_codigo
 
 
+# %% PASO 1 · Localizar la cadena de ajustes globales
+# ------------------------------------------------------------------------------
+# ORIGEN DE LOS DATOS: el árbol sintáctico del script (solo el nivel del módulo).
+# LÓGICA     : busca la secuencia  t = Ctor(...)  seguida de  Xn = t.fit_transform(X[, y]).
+#              Devuelve las creaciones y los ajustes en orden (entrada, salida, ¿usa y?).
+#              Si el ajuste está dentro de una función o un bucle, no lo reconoce (caso manual).
+# ------------------------------------------------------------------------------
 def _nombre(nodo):
     """Nombre simple de una llamada ('StandardScaler' en StandardScaler(...))."""
     f = getattr(nodo, "func", None)
@@ -79,6 +96,13 @@ def _agregar_import(arbol, modulo, nombre):
     arbol.body.insert(posicion, nuevo)
 
 
+# %% PASO 2 · Reparación del patrón CV (regla R-CV)
+# ------------------------------------------------------------------------------
+# LÓGICA     : encuentra la llamada de validación cuyo 2.º argumento es la matriz contaminada;
+#              construye Pipeline([(t1, Ctor1), ..., ("modelo", modelo)]) con los MISMOS
+#              constructores e hiperparámetros, y le pasa la matriz ORIGINAL. Así, en cada
+#              pliegue los transformadores se ajustan solo con el entrenamiento.
+# ------------------------------------------------------------------------------
 def _corregir_cv(arbol, creaciones, ajustes):
     """Patrón CV: encierra los transformadores y el modelo en un Pipeline."""
     salida_final = ajustes[-1][3]
@@ -106,6 +130,12 @@ def _corregir_cv(arbol, creaciones, ajustes):
     return True, "Transformadores encapsulados en sklearn.pipeline.Pipeline (patrón CV).", True
 
 
+# %% PASO 3 · Reparación del patrón Split (regla R-Split)
+# ------------------------------------------------------------------------------
+# LÓGICA     : hace que train_test_split reciba la matriz ORIGINAL y, justo después, inserta
+#              X_tr = t.fit_transform(X_tr[, y_tr])  y  X_te = t.transform(X_te)  por cada
+#              transformador: aprende solo del entrenamiento y aplica lo aprendido a la prueba.
+# ------------------------------------------------------------------------------
 def _corregir_split(arbol, creaciones, ajustes):
     """Patrón Split: mueve el ajuste de los transformadores a después de train_test_split."""
     salida_final = ajustes[-1][3]
@@ -139,6 +169,15 @@ def _corregir_split(arbol, creaciones, ajustes):
     return True, "Ajuste de transformadores movido DESPUÉS de train_test_split (patrón Split).", False
 
 
+# %% PASO 4 · Orquestación: auditar → reparar → re-auditar
+# ------------------------------------------------------------------------------
+# LÓGICA     : 1) si el auditor no ve fuga, no toca nada;  2) intenta el patrón CV y, si no
+#              aplica, el Split;  3) borra las líneas originales que ya sobran;  4) vuelve a
+#              auditar el código nuevo. Solo se declara "reparado" si la re-auditoría da LIMPIO.
+# SALIDA     : codigo_corregido, reparado, requiere_revision_manual, mensaje, auditoria_final.
+# INTERPRETACIÓN: "requiere_revision_manual" es un resultado honesto, no un error: la Skill
+#              delega ese caso al agente o a la persona, con las reglas de SKILL.md.
+# ------------------------------------------------------------------------------
 def corregir_codigo(codigo):
     """
     Intenta reparar `codigo`. Devuelve dict:
@@ -178,6 +217,11 @@ def corregir_codigo(codigo):
             "mensaje": mensaje, "auditoria_final": despues}
 
 
+# %% PASO 5 · Interfaz de archivo y línea de comandos
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : lee un .py, lo repara y, si se indica, escribe el resultado en otro archivo
+#              (run_benchmark.py lo usa para poblar 02_pipelines/repaired_pairs/).
+# ------------------------------------------------------------------------------
 def corregir_archivo(ruta_entrada, ruta_salida=None):
     """Repara un archivo; si se da ruta_salida, escribe allí el código corregido."""
     resultado = corregir_codigo(Path(ruta_entrada).read_text(encoding="utf-8"))

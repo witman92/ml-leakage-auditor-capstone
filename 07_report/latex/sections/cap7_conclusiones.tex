@@ -1,0 +1,10 @@
+% ========================================
+% CAPÍTULO 7: CONCLUSIONES
+% ========================================
+
+\chapter{CONCLUSIONES}
+\label{ch:conclusiones}
+
+La pregunta de investigación tiene, con la evidencia de Capstone~I, una respuesta afirmativa pero acotada. \textbf{Detectar} es posible: el auditor determinista reconoce la fuga de preprocesamiento y selección en scripts de scikit-learn, y en una prueba independiente pequeña el diseño híbrido detectó los 9 casos con fuga, aunque ninguno de sus dos componentes lo logró por sí solo (OE2). \textbf{Reparar sin cambiar el modelo} es posible en los patrones habituales, pero no en general: 96 de 96 en el banco y 4 de 9 en código escrito a mano (OE4). \textbf{Cuantificar} es posible con \DOpt, un indicador pareado que separa la fuga del sobreajuste; su magnitud no es una propiedad fija de cada familia de modelos, sino que depende de la relación entre señal y ruido: casi nula con datos de señal fuerte y de hasta 0,20 de AUC con señal nula (OE3). Los productos, dos Skills y una plataforma web, están operativos como prototipo (OE4).
+
+Lo que falta, y es lo que da sentido al proyecto, es medir la fuga en código escrito por LLM reales. Para Capstone~II se fijan de antemano los umbrales, se amplía la evaluación independiente y se reformula OE3 en términos de señal y ruido. Todas las cifras de este informe y el código que las produce están en el repositorio y se regeneran con un solo comando.

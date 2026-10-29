@@ -1,0 +1,66 @@
+% ========================================
+% CAPÍTULO 2: FUNDAMENTACIÓN Y POSICIONAMIENTO  (criterio 2)
+% ========================================
+
+\chapter{FUNDAMENTACIÓN Y POSICIONAMIENTO}
+\label{ch:fundamentacion}
+
+El proyecto exige tres decisiones que la literatura permite justificar: cómo \emph{detectar} la fuga, cómo \emph{medir} su efecto y contra qué \emph{verdad de referencia} validar el detector. Este capítulo compara las alternativas para cada una y deriva de esa comparación la brecha y las decisiones de diseño.
+
+\section{La fuga como sesgo de evaluación}
+
+\textcite{kaufman2012} definen la fuga como el uso, durante el entrenamiento o la evaluación, de información que no estaría disponible al momento de predecir. En preprocesamiento, el caso más estudiado es la selección de variables: \textcite{ambroise2002} mostraron que elegir genes con todas las muestras y validar después produce tasas de error engañosamente bajas, y \textcite{varma2006} y \textcite{cawley2010} demostraron que optimizar decisiones con los mismos datos con que se estima el desempeño sesga esa estimación hacia el optimismo. \textcite{hastie2009} lo resumen como la forma «incorrecta» y la «correcta» de validar: todo paso que mira los datos debe repetirse dentro de cada pliegue. La amplitud del problema en la práctica es conocida: \textcite{kapoor2023} documentaron 294 artículos afectados en 17 campos. Esta literatura sustenta dos hipótesis del proyecto: la selección supervisada debería ser la fuga más dañina cuando la señal es débil, y un transformador afín, como el escalado, no debería afectar a los árboles.
+
+\section{Alternativas para detectar la fuga}
+
+La Tabla~\ref{tab:enfoques} compara cuatro enfoques. Los \textbf{detectores estáticos} analizan el flujo de datos de notebooks \parencite{yang2022}, lo formalizan con interpretación abstracta \parencite{drobnjakovic2024} o lo integran a un IDE \parencite{alomar2025}. Los \textbf{LLM como detector} combinan \emph{slicing} con \emph{prompts} estructurados \parencite{draoui2026} o integran un agente de chequeo de fuga \parencite{nam2025}, pero como jueces prefieren sus propias respuestas \parencite{zheng2023} y fallan al identificar problemas tempranos del pipeline \parencite{kumar2025}. Las \textbf{listas de verificación} \parencite{lones2024,kapoor2024} dependen de un revisor experto. La \textbf{instrumentación en ejecución} observa con cuántas filas se ajustó cada transformador, a costa de ejecutar el código.
+
+\begin{table}[!htbp]
+\centering
+\caption{Síntesis comparativa de los enfoques para detectar fuga de datos.}
+\label{tab:enfoques}
+\begingroup\scriptsize\singlespacing
+\begin{tabular}{@{}p{2.6cm} p{3.6cm} p{4.3cm} p{1.6cm} p{2.6cm}@{}}
+\toprule
+Enfoque & Fortaleza & Limitación & ¿Mide el daño? & Uso en este proyecto \\
+\midrule
+Análisis estático (flujo de datos) & Determinista, reproducible, no ejecuta código & Ciego a fugas que dependen de valores y a alias; validado en código humano & No & Núcleo del auditor (AST) \\
+LLM como detector o juez & Entiende estilos variados de código & Sesgo de autopreferencia, variabilidad entre corridas, sin evidencia trazable & No & Descartado como instrumento \\
+Listas de verificación & Cubren fugas temporales y de dominio & Requieren un revisor experto; no se automatizan & No & Criterio de «código correcto» \\
+Instrumentación en ejecución & Observa el ajuste real, inmune a alias & Exige ejecutar código no confiable & No & Segunda opinión del auditor \\
+\textbf{Este proyecto (híbrido)} & Lee y ejecuta; repara patrones comunes & Solo scikit-learn tabular; reparación limitada & \textbf{Sí} (\DOpt) & --- \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+
+\section{Alternativas para medir el efecto y para la verdad de referencia}
+\label{sec:alternativas}
+
+Para \textbf{medir el daño}, la \emph{brecha de generalización} (entrenamiento menos prueba) mide sobreajuste, que existe aun sin fuga (por ejemplo, en un árbol sin poda), y confunde dos fenómenos. La \emph{validación cruzada anidada} corrige el sesgo de selección de modelos \parencite{varma2006,cawley2010}, pero no aísla el aporte de un error concreto del código. La \emph{comparación pareada} de una evaluación defectuosa con su versión corregida, con los mismos pliegues, sí lo aísla, porque todo lo demás queda fijo; es la lógica de los reanálisis de \textcite{kapoor2023} y la que adopta \DOpt.
+
+Para la \textbf{verdad de referencia}, los anotadores humanos introducen variabilidad subjetiva y el LLM juez hereda los problemas de la Tabla~\ref{tab:enfoques}. El oráculo programático, que construye cada script con y sin fuga, conoce la etiqueta con certeza, pero si el mismo autor escribe el generador y el detector la evaluación es circular; por eso se complementa con un conjunto escrito a mano con estilos que el generador no produce.
+
+\section{Brecha y decisiones de diseño}
+
+Entre las fuentes revisadas, ninguna mide el optimismo mediante una intervención pareada sobre el mismo pipeline ni combina la lectura y la ejecución del código con su reparación. La Tabla~\ref{tab:decisiones} resume las decisiones que se derivan de la comparación anterior.
+
+\begin{table}[!htbp]
+\centering
+\caption{Decisiones de diseño, alternativas descartadas y respaldo.}
+\label{tab:decisiones}
+\begingroup\scriptsize\singlespacing
+\begin{tabular}{@{}p{3.0cm} p{3.4cm} p{6.0cm} p{2.4cm}@{}}
+\toprule
+Decisión & Alternativa descartada & Justificación & Respaldo \\
+\midrule
+Auditor determinista (AST y ejecución) & LLM como juez & Un instrumento de medición debe dar el mismo veredicto en cada corrida y no puede tener interés en el resultado & \textcite{zheng2023} \\
+Detector híbrido & Solo estático o solo dinámico & El AST no ve valores ni alias; la ejecución no ve ajustes parciales: fallan en casos distintos & \textcite{yang2022} \\
+\DOpt{} pareado (mismos pliegues) & Brecha de generalización; CV anidada & Aísla causalmente el efecto del error; la brecha mezcla fuga y sobreajuste & \textcite{kapoor2023,cawley2010} \\
+Oráculo programático más un conjunto manual independiente & Anotadores humanos o LLM juez & Etiqueta exacta y sin subjetividad; el conjunto manual controla la circularidad & \textcite{hevner2004} \\
+Columnas de ruido y control positivo con señal nula & Solo datos originales & La fuga por selección solo se manifiesta si hay variables inútiles entre las cuales elegir & \textcite{ambroise2002} \\
+Pruebas no paramétricas pareadas con corrección de Holm & $t$ de Student sin corregir & Pocos datasets y sin supuesto de normalidad; varias pruebas simultáneas & \textcite{demsar2006,holm1979} \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}

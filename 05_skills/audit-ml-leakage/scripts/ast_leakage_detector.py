@@ -1,39 +1,53 @@
+# ==============================================================================
+# ast_leakage_detector.py · Auditor estático de fuga de datos (Objetivo Específico 2)
+# ==============================================================================
 """
-ast_leakage_detector.py  ·  Auditor estático de fuga de datos (Objetivo Específico 2).
+Lee el código SIN ejecutarlo (módulo `ast` de Python) y avisa si algún transformador de
+scikit-learn (escalador, imputador, selector, PCA...) se ajusta con filas que luego se usan
+para evaluar.
 
-IDEA EN UNA FRASE
-    Lee el código SIN ejecutarlo (con el módulo `ast` de Python) y avisa si algún
-    transformador de scikit-learn (escalador, imputador, selector, PCA...) se ajusta
-    con TODAS las filas antes de que los datos se separen en entrenamiento/prueba.
+Reglas formales:
+    R-Split : .fit()/.fit_transform() ANTES de train_test_split(...).
+    R-CV    : .fit()/.fit_transform() fuera de un Pipeline cuyo resultado entra a
+              cross_val_score / cross_validate / GridSearchCV.
+    R-Test  : se ajusta un transformador con una variable que parece de prueba (X_test, X_te...).
 
-¿POR QUÉ ES UNA FUGA?
-    Un transformador "aprende" parámetros con .fit() (media, varianza, vecinos, variables
-    elegidas). Si aprende con todo el dataset, ya vio las filas de prueba: la evaluación
-    queda artificialmente optimista.
-
-LAS DOS REGLAS FORMALES
-    R-Split : se llama .fit()/.fit_transform() ANTES de train_test_split(...).
-    R-CV    : se llama .fit()/.fit_transform() fuera de un Pipeline y el resultado
-              entra a cross_val_score / cross_validate / GridSearchCV
-              (cada pliegue de la validación ya "vio" las demás filas).
-    R-Test  : (regla extra) se ajusta un transformador con una variable cuyo nombre
-              indica que son datos de prueba (X_test, X_val...).
-
-LO QUE NO HACE (limitaciones honestas, se discuten en el informe)
-    - No ejecuta el código: no puede ver fugas que dependen de valores (p. ej. duplicados).
-    - Sigue variables por nombre, de forma simple; código muy dinámico (exec, getattr)
-      puede escapar. Para eso existe el verificador en ejecución (runtime_verifier.py).
-
-USO
+Uso:
     python 03_auditor/ast_leakage_detector.py mi_script.py          # informe legible
     python 03_auditor/ast_leakage_detector.py mi_script.py --json   # salida JSON
+Código de salida: 1 si hay fuga, 0 si no (útil en integración continua).
+
+Fuente única: 05_skills/sync_skills.py copia este archivo dentro de cada Skill.
 """
 
+# %% PASO 0 · Por qué un análisis estático y determinista
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : documenta el fundamento del instrumento.
+# POR QUÉ ES FUGA: un transformador "aprende" parámetros con .fit() (media, varianza, vecinos,
+#              variables elegidas). Si aprende con todo el dataset, ya vio las filas de prueba y la
+#              evaluación queda artificialmente optimista, sin que el código lance ningún error.
+# POR QUÉ AST Y NO UN LLM: el árbol sintáctico da el mismo veredicto siempre para el mismo código
+#              (oráculo determinista, sin alucinaciones ni variabilidad entre corridas), condición
+#              necesaria para usarlo como instrumento de medición.
+# LIMITACIONES (se discuten en el informe):
+#   - No ejecuta el código: no ve fugas que dependen de valores (p. ej. duplicados).
+#   - Sigue variables por nombre: alias de importación (`as SS`), exec o getattr pueden escapar.
+#     Para eso existe el verificador en ejecución (runtime_verifier.py).
+# ------------------------------------------------------------------------------
 import ast
 import json
 import sys
 from pathlib import Path
 
+
+# %% PASO 1 · Catálogo de transformadores y funciones vigiladas
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : define qué clases "aprenden de los datos" (y qué tipo de fuga producen), qué
+#              métodos son ajustes, qué funciones son validación cruzada o partición, y qué
+#              palabras delatan una variable de prueba.
+# INTERPRETACIÓN: el catálogo es el alcance del auditor; una clase fuera de él no se audita.
+#              SOBREMUESTREO (SMOTE) se reconoce pero no se mide en el experimento (desviación B2).
+# ------------------------------------------------------------------------------
 # --- Catálogo: nombre de clase de scikit-learn -> tipo de fuga que produce ---------------
 TRANSFORMADORES = {
     # Escalado y normalización
@@ -58,6 +72,13 @@ FUNCIONES_PARTICION = {"train_test_split"}
 PALABRAS_PRUEBA = {"test", "te", "val", "valid", "validation", "eval", "holdout"}
 
 
+# %% PASO 2 · Utilidades de lectura del árbol sintáctico
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : funciones pequeñas para extraer nombres de llamadas, de variables usadas en una
+#              expresión y de variables asignadas (soporta `a, b = ...`).
+# HEURÍSTICA : _parece_prueba separa el nombre por "_" y busca palabras como test/te/val. Es una
+#              heurística por nombre (corrección C5): se declara como limitación.
+# ------------------------------------------------------------------------------
 def _parece_prueba(nombre_variable):
     return bool(set(nombre_variable.lower().split("_")) & PALABRAS_PRUEBA)
 
@@ -89,6 +110,16 @@ def _objetivos(asignacion):
     return nombres
 
 
+# %% PASO 3 · Recolección de hechos en UNA pasada por el árbol
+# ------------------------------------------------------------------------------
+# ORIGEN DE LOS DATOS: el árbol que produce ast.parse(codigo) a partir del texto del script.
+# LÓGICA     : un NodeVisitor anota, con su número de línea:
+#   - transformadores creados   (scaler = StandardScaler())
+#   - ajustes sobre ellos       (scaler.fit_transform(X), StandardScaler().fit(X))
+#   - particiones               (train_test_split(...))
+#   - validaciones cruzadas     (cross_val_score(...), GridSearchCV(...))
+#   - todas las asignaciones, en orden, para el flujo de datos del PASO 4.
+# ------------------------------------------------------------------------------
 class _Recolector(ast.NodeVisitor):
     """Recorre el árbol UNA vez y junta los hechos que necesitan las reglas."""
 
@@ -136,6 +167,13 @@ class _Recolector(ast.NodeVisitor):
         self.generic_visit(nodo)
 
 
+# %% PASO 4 · Flujo de datos: qué variables quedan "contaminadas"
+# ------------------------------------------------------------------------------
+# LÓGICA     : si X2 = t.fit_transform(X) (o t.transform(X) de un t ajustado globalmente), X2 queda
+#              contaminada; y cualquier variable calculada a partir de X2 también (p. ej. las
+#              salidas de train_test_split(X2, y)). Es lo que permite a R-CV confirmar que la
+#              matriz contaminada es la que entra a la validación cruzada (confianza "alta").
+# ------------------------------------------------------------------------------
 def _propagar_flujo(rec):
     """
     Flujo de datos mínimo: si `X2 = scaler.fit_transform(X)` o `X2 = scaler.transform(X)`,
@@ -167,6 +205,20 @@ def _propagar_flujo(rec):
     return contaminadas
 
 
+# %% PASO 5 · Aplicación de las reglas y veredicto
+# ------------------------------------------------------------------------------
+# LÓGICA (por cada ajuste encontrado, en este orden de prioridad):
+#   R-Split  alta  -> hay un train_test_split en una línea POSTERIOR al ajuste.
+#   R-CV     alta  -> una validación cruzada usa una variable contaminada (flujo verificado).
+#   R-CV     media -> hay validación cruzada y ningún split previo, pero el flujo no se pudo
+#                     seguir: sospecha que conviene revisar a mano.
+#   R-Test   alta  -> el ajuste recibe una variable cuyo nombre parece de prueba.
+# SALIDA     : dict con estado (FUGA_DETECTADA | LIMPIO | ERROR_SINTAXIS), tipos de fuga,
+#              hallazgos (línea, clase, tipo, regla, confianza, mensaje, código) y un resumen.
+# INTERPRETACIÓN: "LIMPIO" significa "sin evidencia de R-Split, R-CV y R-Test", no "sin ningún
+#              tipo de fuga". En el banco de control este veredicto se compara con la verdad
+#              conocida para estimar precisión, recall y VPN (04_experiments/run_benchmark.py).
+# ------------------------------------------------------------------------------
 def analizar_codigo(codigo):
     """
     Audita el texto de un script. Devuelve un diccionario:
@@ -231,6 +283,11 @@ def analizar_archivo(ruta):
     return analizar_codigo(Path(ruta).read_text(encoding="utf-8"))
 
 
+# %% PASO 6 · Informe legible y ejecución por línea de comandos
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : imprime el veredicto y cada hallazgo con su línea de código, o JSON con --json.
+# CÓDIGO DE SALIDA: 1 = fuga, 0 = limpio; permite bloquear una integración continua.
+# ------------------------------------------------------------------------------
 def _imprimir(resultado, ruta):
     print(f"Archivo : {ruta}")
     print(f"Estado  : {resultado['estado']}  ({resultado['resumen']})")

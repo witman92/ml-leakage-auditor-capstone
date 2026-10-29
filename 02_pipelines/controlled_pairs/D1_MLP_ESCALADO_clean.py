@@ -1,7 +1,7 @@
 """
 Pipeline CONTROLADO  |  dataset D1 (breast_cancer, clasificacion)  |  modelo MLP  |  fuga ESCALADO  |  versión CLEAN
 
-Generado automáticamente por 02_pipelines/generar_pares_controlados.py (no editar a mano).
+Generado automáticamente por 02_pipelines/generate_controlled_pairs.py (no editar a mano).
 Esta versión NO tiene fuga: los transformadores van dentro de un Pipeline y se ajustan por pliegue.
 """
 import pathlib

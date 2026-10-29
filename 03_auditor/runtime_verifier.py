@@ -1,31 +1,31 @@
+# ==============================================================================
+# runtime_verifier.py · Verificador en ejecución (segunda opinión del auditor)
+# ==============================================================================
 """
-runtime_verifier.py  ·  Verificador en ejecución (segunda opinión del auditor).
+Ejecuta el script de verdad y cuenta con cuántas FILAS se ajusta cada transformador. Si alguno se
+ajusta con tantas filas como el dataset completo, vio el conjunto de prueba: hay fuga.
 
-IDEA EN UNA FRASE
-    Ejecuta el script de verdad y cuenta con cuántas FILAS se ajusta cada transformador.
-    Si alguno se ajusta con tantas filas como tiene el dataset completo, vio el conjunto
-    de prueba: hay fuga.
-
-¿POR QUÉ HACE FALTA SI YA HAY UN AUDITOR AST?
-    El AST lee el código, pero no lo entiende del todo (nombres dinámicos, funciones
-    auxiliares...). El verificador mide lo que PASÓ, no lo que el código parece decir.
-    Son dos mecanismos distintos: si coinciden, la conclusión es más sólida.
-
-CÓMO FUNCIONA (técnica de "gancho" o hook)
-    Mientras dura el bloque `with VerificadorEjecucion():` se reemplazan los métodos
-    .fit y .fit_transform de los transformadores de scikit-learn por versiones que,
-    antes de llamar al original, anotan cuántas filas recibieron. Al salir del bloque
-    se restauran los métodos originales: no queda ninguna modificación permanente.
-
-    Regla de decisión:   n_filas_ajuste >= n_total   =>   FUGA
-    (en validación cruzada de 5 pliegues un transformador bien puesto ve ~80 % de las filas)
-
-USO
+Uso:
     from runtime_verifier import ejecutar_con_verificador
     r = ejecutar_con_verificador("mi_script.py")
     r["fuga"], r["max_filas_ajuste"], r["n_total"], r["globales"]["resultados"]
+
+ADVERTENCIA: ejecuta código. Úselo solo con scripts confiables o dentro de un entorno aislado
+(la plataforma web 06_web_app NO usa este módulo por esa razón).
 """
 
+# %% PASO 0 · Por qué hace falta si ya existe el auditor AST
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : documenta el rol del verificador dentro del detector híbrido.
+# POR QUÉ    : el AST lee el código pero no lo "entiende" del todo (alias, funciones auxiliares);
+#              el verificador mide lo que PASÓ, no lo que el código parece decir. Son mecanismos
+#              independientes: si coinciden, la conclusión es más sólida; si difieren, cada uno
+#              cubre un punto ciego del otro (híbrido = AST o ejecución).
+# REGLA DE DECISIÓN:  n_filas_ajuste >= n_total   =>   FUGA
+#              (en 5 pliegues, un transformador bien encapsulado ve ≈ 80 % de las filas).
+# LIMITACIÓN : no ve fugas que no usan todas las filas (p. ej. ajustar con el 70 % de
+#              entrenamiento y luego hacer validación cruzada encima, o re-ajustar con X_test).
+# ------------------------------------------------------------------------------
 import runpy
 import threading
 import warnings
@@ -37,6 +37,12 @@ from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.preprocessing import (MaxAbsScaler, MinMaxScaler, PowerTransformer,
                                    QuantileTransformer, RobustScaler, StandardScaler)
 
+
+# %% PASO 1 · Clases vigiladas
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : lista los transformadores de scikit-learn cuyo .fit / .fit_transform se interceptan.
+# NOTA       : coincide con el catálogo del AST salvo las clases de librerías externas (SMOTE).
+# ------------------------------------------------------------------------------
 CLASES_VIGILADAS = [
     StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, PowerTransformer, QuantileTransformer,
     SimpleImputer, KNNImputer,
@@ -46,11 +52,24 @@ CLASES_VIGILADAS = [
 _estado_hilo = threading.local()  # profundidad de llamadas, para no contar dos veces
 
 
+# %% PASO 2 · Conteo de filas
+# ------------------------------------------------------------------------------
+# QUÉ HACE   : número de filas de X, sea DataFrame, ndarray o lista.
+# ------------------------------------------------------------------------------
 def _filas(X):
     """Número de filas de X (DataFrame, ndarray o lista)."""
     return X.shape[0] if hasattr(X, "shape") else len(X)
 
 
+# %% PASO 3 · El "gancho" (hook): interceptar .fit sin modificar la librería de forma permanente
+# ------------------------------------------------------------------------------
+# LÓGICA     : al entrar al bloque `with VerificadorEjecucion():` se reemplazan .fit y
+#              .fit_transform de cada clase vigilada por una envoltura que anota
+#              {clase, método, filas} y luego llama al método original. Al salir del bloque se
+#              restauran los originales (o se borra la envoltura si el método era heredado).
+# DETALLE    : fit_transform suele llamar internamente a fit; un contador de profundidad por hilo
+#              evita registrar dos veces la misma operación.
+# ------------------------------------------------------------------------------
 class VerificadorEjecucion:
     """Administrador de contexto que registra con cuántas filas se ajusta cada transformador."""
 
@@ -95,6 +114,16 @@ class VerificadorEjecucion:
         return False
 
 
+# %% PASO 4 · Ejecutar un script bajo vigilancia y decidir
+# ------------------------------------------------------------------------------
+# ORIGEN DE LOS DATOS: el propio script, ejecutado con runpy (sus variables globales quedan en
+#              "globales"; run_benchmark.py lee de ahí los puntajes de `resultados`).
+# n_total    : filas del dataset completo; si no se entrega, se usa la variable N_TOTAL del script
+#              o, en su defecto, len(y).
+# SALIDA     : fuga (bool), max_filas_ajuste, n_total, registros (cada ajuste) y globales.
+# INTERPRETACIÓN: en un script limpio max_filas_ajuste/n_total ≈ 0,8; un cociente de 1,0 indica
+#              que algún transformador aprendió con todas las filas.
+# ------------------------------------------------------------------------------
 def ejecutar_con_verificador(ruta_script, n_total=None):
     """
     Ejecuta `ruta_script` bajo vigilancia y decide si hubo fuga.
