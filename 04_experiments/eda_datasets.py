@@ -45,6 +45,10 @@ def resumen_dataset(ident):
         "razon_escalas_max_min": round(float(desviaciones.max() / desviaciones.min()), 1),
         "asimetria_media_abs": round(float(np.nanmean(np.abs(skew(X, axis=0, nan_policy="omit")))), 2),
     }
+    # Calidad más allá de los faltantes: filas repetidas y celdas atípicas (|z| > 3 por columna no constante)
+    fila["filas_duplicadas"] = int(pd.DataFrame(X).duplicated().sum())
+    z = np.abs((X - X.mean(axis=0)) / np.where(X.std(axis=0) == 0, np.nan, X.std(axis=0)))
+    fila["atipicos_pct"] = round(100 * float(np.nanmean(z > 3)), 2)
     if tarea == "clasificacion":
         frecuencias = pd.Series(y).value_counts(normalize=True)
         fila.update({"n_clases": len(frecuencias), "clase_minoritaria_pct": round(100 * frecuencias.min(), 1),

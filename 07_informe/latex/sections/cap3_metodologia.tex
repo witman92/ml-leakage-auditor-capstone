@@ -56,6 +56,8 @@ D6 & friedman1 & Regresión & 1.000 & 50 & 1,1 & 0,04 & --- \\
 \end{table}
 \nota{Razón de escalas: desviación estándar máxima sobre mínima entre variables. $^{*}$Submuestra determinista de 3.000 filas de 20.640 (desviación B1, sección~\ref{sec:desviaciones}). \texttt{digits} tiene 3 columnas constantes.}
 
+\textbf{Calidad más allá de los faltantes.} Ningún dataset base tiene filas duplicadas. La proporción de celdas atípicas ($|z|>3$ por columna) es baja: 1,24\,\% en \texttt{breast\_cancer}, 0,48\,\% en \texttt{wine}, 0,67\,\% en \texttt{digits}, 0,34\,\% en \texttt{diabetes}, 0,59\,\% en \texttt{california\_housing} y 0\,\% en \texttt{friedman1} (\arch{eda_datasets.csv}). Son datos limpios por diseño, y por eso los faltantes se simulan.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{fig_eda_datasets.png}

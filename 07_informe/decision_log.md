@@ -7,7 +7,7 @@ Los resultados descartados se conservan en `04_experiments/results/corrida1_desc
 
 | # | Decisión | Motivo (observación del comité) |
 |---|---|---|
-| A1 | Se abandona el proyecto anterior (`tesis_consolidada_v3`: 19 etapas, jueces y anotadores simulados, datasets OpenML) y se reconstruye en una carpeta nueva y mínima. | R4/R7: el flujo era difícil de auditar y de explicar; la rúbrica v2 exige poder defender cada cifra. `tesis_consolidada_v3` queda intacta como archivo histórico. |
+| A1 | Se abandona el proyecto anterior (`tesis_consolidada_v3`: 19 etapas, jueces y anotadores simulados, datasets OpenML) y se reconstruye en una carpeta nueva y mínima. | R4/R7: el flujo era difícil de auditar y de explicar; la rúbrica v2 exige poder defender cada cifra. `tesis_consolidada_v3` se eliminó el 29-oct-2026 para no generar ruido; sus referencias ya están en `references.bib`. |
 | A2 | Datasets: 6 nativos de `scikit-learn` (3 clasificación, 3 regresión). Sin OpenML. | R5. |
 | A3 | Sin anotadores humanos: la verdad conocida sale de construir pares *leaky/clean* (oráculo programático). | R5. |
 | A4 | La métrica pasa a llamarse **Sesgo de Optimismo ΔOpt** = M(leaky) − M(clean), con los mismos pliegues. Se retira «brecha de generalización auditada». | R9: la brecha de generalización clásica mide sobreajuste, no fuga. |
@@ -32,3 +32,12 @@ Los resultados descartados se conservan en `04_experiments/results/corrida1_desc
 | C3 | Con 50 columnas de ruido, la fuga por selección casi no infla el AUC en datasets de señal fuerte (breast_cancer, digits). | No se manipuló el diseño para «obtener» efecto. Se añadió `sensibilidad_ruido.py`, que mide el ΔOpt con 0, 50, 200 y 1000 columnas de ruido. | La conclusión pasa a ser condicional: el daño de la selección depende de la razón señal/ruido. |
 | C4 | El auditor obtuvo 192/192 sobre el banco que generó el mismo equipo (**evaluación circular**). | Se añadió una evaluación independiente con 13 scripts escritos a mano (`08_pruebas/casos_manuales`). | Sus resultados (incluido el caso que el AST falla) se reportan como medida de generalización. |
 | C5 | En la evaluación independiente, el caso `05` (`X_te`) escapó al AST porque la heurística buscaba la palabra «test». | La heurística compara por palabras (`te`, `val`, `eval`…). | Sigue siendo una heurística por nombre: se declara como limitación. |
+
+## D. Correcciones de la versión V1 (29-oct-2026), contra el informe de corrección y la rúbrica v2.0
+
+| # | Cambio | Por qué | Efecto |
+|---|---|---|---|
+| D1 | Se agrega `04_experiments/demo_fuga.py` y la Figura 1.2 (`fig_demo_fuga.png`). | R3: el informe de corrección pide un ejemplo paso a paso con gráfico. Se corrigió el código del informe: guarda el PNG (no usa `plt.show`), usa título en cadena cruda y no recorta el eje. | Con señal real ΔOpt = +0,0015; con señal nula (500 columnas de ruido, etiquetas permutadas) +0,048. Se informan ambos: el primero es casi invisible. |
+| D2 | Se agrega `linea_base_regla_simple.py` (regla trivial: `.fit` sin `Pipeline`). | Rúbrica criterio 4 (línea base). | Recall 0,75 en el banco y 0,89 en los 13 casos manuales, con 1 FP. **Primeras versiones de la regla daban recall 0** por contar `import Pipeline` y un docstring como uso real; se corrigió la regla (no el auditor) y se declara. |
+| D3 | `eda_datasets.py` suma filas duplicadas y celdas atípicas (\|z\|>3). | Rúbrica criterio 3 (calidad más allá de faltantes). | 0 duplicados; atípicos entre 0 % y 1,24 %. |
+| D4 | `cawley2010` y `demsar2006` verificadas en jmlr.org; se añaden `kapoor2024` (REFORMS) y `lai2023` (DS-1000), tomadas de la bibliografía del proyecto anterior (`tesis_consolidada_v3`, hoy eliminado). | Rúbrica R1 (referencias verificables) y criterio 2. | De v3 solo se reutilizaron referencias; ninguna cifra ni figura (sus datos eran simulados). |

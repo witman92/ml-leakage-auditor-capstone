@@ -1,7 +1,7 @@
-id,dataset,tarea,N,p_base,p_con_ruido,columnas_constantes,razon_escalas_max_min,asimetria_media_abs,n_clases,clase_minoritaria_pct,y_media,y_desv,faltantes_variante_pct
-D1,breast_cancer,clasificacion,569,30,80,0,215170.7,1.74,2.0,37.3,,,9.9
-D2,wine,clasificacion,178,13,63,0,2530.3,0.43,3.0,27.0,,,9.8
-D3,digits,clasificacion,1797,64,114,3,277.2,4.89,10.0,9.7,,,10.1
-D4,diabetes,regresion,442,10,60,0,1.0,0.41,,,152.133,77.006,9.9
-D5,california_housing,regresion,3000,8,58,0,1398.4,10.0,,,2.084,1.167,10.0
-D6,friedman1,regresion,1000,50,50,0,1.1,0.04,,,14.364,5.036,10.1
+id,dataset,tarea,N,p_base,p_con_ruido,columnas_constantes,razon_escalas_max_min,asimetria_media_abs,filas_duplicadas,atipicos_pct,n_clases,clase_minoritaria_pct,y_media,y_desv,faltantes_variante_pct
+D1,breast_cancer,clasificacion,569,30,80,0,215170.7,1.74,0,1.24,2.0,37.3,,,9.9
+D2,wine,clasificacion,178,13,63,0,2530.3,0.43,0,0.48,3.0,27.0,,,9.8
+D3,digits,clasificacion,1797,64,114,3,277.2,4.89,0,0.67,10.0,9.7,,,10.1
+D4,diabetes,regresion,442,10,60,0,1.0,0.41,0,0.34,,,152.133,77.006,9.9
+D5,california_housing,regresion,3000,8,58,0,1398.4,10.0,0,0.59,,,2.084,1.167,10.0
+D6,friedman1,regresion,1000,50,50,0,1.1,0.04,0,0.0,,,14.364,5.036,10.1

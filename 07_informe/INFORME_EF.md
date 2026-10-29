@@ -7,7 +7,7 @@ Autor: Witman Zavala Muñoz · Profesor Guía: Francisco Pérez · Co-guía: no 
 > **VERSIÓN FUENTE EN LaTeX:** la versión para entregar está en `latex/informe_EF.tex` (PDF: `latex/informe_EF.pdf`). Este Markdown queda como borrador de lectura.
 >
 > **Nota de formato (borrar antes de entregar).** Este texto está en Markdown para poder editarlo en VS Code. Debe pasarse a la
-> plantilla UDLA (`udla-capstone.cls`, en `tesis_consolidada_v3/…/latex/`). Estimación: ≈ 5.700 palabras + 5 tablas + 4 figuras
+> plantilla UDLA (`udla-capstone.cls`, en `07_informe/latex/`). Estimación: ≈ 5.700 palabras + 5 tablas + 4 figuras
 > ≈ 16–18 páginas de cuerpo (la rúbrica v2 exige **15–20**, sin portada, referencias ni anexos). Mídalo en la plantilla.
 > Todas las cifras salen de `04_experiments/results/` y se regeneran con `python ejecutar_todo.py`.
 

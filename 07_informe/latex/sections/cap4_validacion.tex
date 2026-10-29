@@ -11,7 +11,7 @@ Se aplica al experimento lo que se audita: (i) validación cruzada de 5 pliegues
 
 \section{Métricas y línea base}
 
-\emph{Del auditor} (positivo = «hay fuga»): precisión, recall, F1 y valor predictivo negativo (VPN: probabilidad de que un script declarado limpio lo sea). \emph{Del daño}: \DOpt{} en ROC-AUC (clasificación) y $R^2$ (regresión), con F1 macro y RMSE como secundarias. \emph{Línea base:} el pipeline \texttt{clean} es el punto de comparación de \DOpt, y los componentes por separado (solo AST y solo ejecución) son la línea base del detector híbrido. No se comparó contra un \emph{linter} ni contra un LLM juez; queda para Capstone~II.
+\emph{Del auditor} (positivo = «hay fuga»): precisión, recall, F1 y valor predictivo negativo (VPN: probabilidad de que un script declarado limpio lo sea). \emph{Del daño}: \DOpt{} en ROC-AUC (clasificación) y $R^2$ (regresión), con F1 macro y RMSE como secundarias. \emph{Línea base:} el pipeline \texttt{clean} es el punto de comparación de \DOpt, y los componentes por separado (solo AST y solo ejecución) son la línea base del detector híbrido. Además se añadió una \textbf{línea base externa}: una regla trivial (\arch{linea_base_regla_simple.py}) que declara fuga si el script ajusta un transformador con \texttt{.fit} y no usa ningún \texttt{Pipeline}, ignorando comentarios e importaciones. La escribió el autor, no es un \emph{linter} de terceros. No se comparó contra un LLM juez; queda para Capstone~II.
 
 \section{Resultados: eficacia del auditor}
 \label{sec:eficacia}
@@ -52,6 +52,27 @@ Híbrido & 9 & 4 & 0 & 0 & 1,00 & 1,00 & 1,00 \\
 \end{tabular}
 \endgroup
 \end{table}
+
+\begin{table}[H]
+\centering
+\caption{Línea base (regla simple) frente al auditor.}
+\label{tab:base}
+\begingroup\footnotesize\singlespacing
+\begin{tabular}{@{}l l r r r r@{}}
+\toprule
+Conjunto & Detector & Precisión & Recall & VPN & FP \\
+\midrule
+Banco (192) & Regla simple & 1,00 & 0,75 & 0,80 & 0 \\
+ & Híbrido & 1,00 & 1,00 & 1,00 & 0 \\
+Independiente (13) & Regla simple & 0,89 & 0,89 & 0,75 & 1 \\
+ & AST & 1,00 & 0,89 & 0,80 & 0 \\
+ & Híbrido & 1,00 & 1,00 & 1,00 & 0 \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{table}
+
+La regla simple rinde sorprendentemente bien en los 13 casos manuales (recall 0,89, igual que el AST), pero con un falso positivo (declara fuga en el script que escala \emph{después} de dividir) y deja pasar el alias de importación. En el banco pierde 24 de 96 fugas (recall 0,75). La ventaja del auditor es modesta con $n=13$: no hay que presentarla como una mejora demostrada, sino como un margen que Capstone~II debe confirmar con más casos.
 
 El AST falla con el alias de importación (\texttt{StandardScaler as SS}); la ejecución falla con ajustes que no usan todas las filas (el escalador re-ajustado solo con las filas de prueba, y el ajustado con el 70\,\% de entrenamiento antes de la validación cruzada). Fallan en casos distintos, lo que respalda el diseño híbrido. Con $n=13$, estas cifras son una \textbf{señal}, no una estimación estable. La reparación automática resolvió 4 de los 9 scripts con fuga; en los otros 5 declaró «requiere revisión manual» y no tocó el código.
 

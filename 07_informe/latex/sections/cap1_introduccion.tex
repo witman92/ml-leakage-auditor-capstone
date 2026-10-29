@@ -7,7 +7,7 @@
 
 \section{Contexto}
 
-Los asistentes de programación basados en modelos de lenguaje grande (LLM) ya escriben pipelines completos de ciencia de datos \parencite{hong2025}, y los \emph{benchmarks} de agentes miden su puntaje o su tasa de éxito \parencite{chan2025,huang2024}, no la validez metodológica de lo que producen. Un código generado por un LLM puede fallar de siete formas habituales: (1) errores de sintaxis; (2) alucinación de APIs o uso de métodos obsoletos; (3) incompatibilidad de dimensiones o tipos; (4) ineficiencia o agotamiento de memoria; (5) falta de control de semillas; (6) manejo inseguro de archivos o credenciales; y (7) \textbf{fuga de datos} (\emph{data leakage}).
+Los asistentes de programación basados en modelos de lenguaje grande (LLM) ya escriben pipelines completos de ciencia de datos \parencite{hong2025} y se evalúan con \emph{benchmarks} de generación de código \parencite{lai2023}, y los \emph{benchmarks} de agentes miden su puntaje o su tasa de éxito \parencite{chan2025,huang2024}, no la validez metodológica de lo que producen. Un código generado por un LLM puede fallar de siete formas habituales: (1) errores de sintaxis; (2) alucinación de APIs o uso de métodos obsoletos; (3) incompatibilidad de dimensiones o tipos; (4) ineficiencia o agotamiento de memoria; (5) falta de control de semillas; (6) manejo inseguro de archivos o credenciales; y (7) \textbf{fuga de datos} (\emph{data leakage}).
 
 La fuga es el único de los siete que \textbf{no interrumpe la ejecución}. Los fallos 1 a 4 y 6 producen una excepción o son visibles para un \emph{linter}, y el fallo 5 se detecta repitiendo la corrida. En cambio, la fuga produce un script que corre de principio a fin, entrega métricas más altas y, por eso, rara vez se cuestiona (Tabla~\ref{tab:ruidoso}). En la práctica humana el problema es amplio: \textcite{kapoor2023} hallaron 294 artículos afectados por fuga en 17 campos científicos, y \textcite{kaufman2012} la formularon como información del objetivo que no estaría disponible al predecir.
 
@@ -48,6 +48,15 @@ scores = cross_val_score(pipe, X, y, cv=5)
 \end{footnotesize}
 \caption{Misma operación con y sin fuga de datos.}
 \label{fig:codigo}
+\end{figure}
+
+Para ver el mecanismo con números, el script \arch{demo_fuga.py} ejecuta ambas formas con \texttt{breast\_cancer}, un \texttt{KNNImputer}, un escalador, \texttt{SelectKBest} y una red \texttt{MLPClassifier}, con los mismos pliegues (Figura~\ref{fig:demo}). Con datos reales, el ROC-AUC es 0,979 con fuga y 0,977 sin ella: $\DOpt=+0{,}0015$, casi invisible porque la señal es muy fuerte. Con 500 columnas de ruido y etiquetas permutadas (verdad: AUC $=0{,}5$), sube a 0,571 frente a 0,523 ($\DOpt=+0{,}048$): el selector «encuentra» columnas que por azar parecen predecir.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig_demo_fuga.png}
+\caption{Mismo pipeline con y sin fuga. (a) Señal real. (b) Señal nula; la línea punteada marca el AUC verdadero (0,5).}
+\label{fig:demo}
 \end{figure}
 
 Se estudian cuatro mecanismos: \textbf{escalado} (la media y la varianza incluyen filas de prueba), \textbf{imputación} (\texttt{KNNImputer} puede copiar valores de vecinos de prueba), \textbf{selección de variables} (\texttt{SelectKBest} usa las etiquetas de todas las filas) y \textbf{combinada} (los tres a la vez).
@@ -131,7 +140,7 @@ N.º & Observación & Dónde se incorpora \\
 \midrule
 1 & Contextualizar los problemas de los LLM y justificar la fuga & Sección 1.1, Tabla~\ref{tab:ruidoso} \\
 2 & Aclarar qué modelos generan y cuáles auditan & Sección~\ref{sec:diseno}: el auditor es determinista; los LLM serán solo sujetos de estudio \\
-3 & Mostrar cómo se fugan los datos, con un ejemplo & Sección 1.2, Figura~\ref{fig:codigo} \\
+3 & Mostrar cómo se fugan los datos, con un ejemplo & Sección 1.2, Figuras~\ref{fig:codigo} y~\ref{fig:demo} \\
 4 & Explicar el experimento paso a paso & Sección~\ref{sec:diseno} y Anexo~\ref{an:repro} \\
 5 & Usar datasets de scikit-learn y evitar anotadores humanos & Sección~\ref{sec:datos}; verdad conocida por construcción \\
 6 & Acotar el paradigma y las familias de modelos & Secciones 1.6 y~\ref{sec:diseno} \\

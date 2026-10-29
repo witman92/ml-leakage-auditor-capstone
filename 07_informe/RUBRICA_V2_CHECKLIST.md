@@ -7,7 +7,7 @@ Escala: Excelente 100–86 (6,0–7,0) · Bien 85–73 (5,0–5,9) · Regular 72
 
 | Req. | Estado | Qué falta |
 |---|---|---|
-| R1 Integridad: referencias verificables, sin datos fabricados | ⚠️ Parcial | 6 referencias nuevas (marcadas con * en el informe: Cawley y Talbot, Demšar, etc.) **no se han verificado contra la fuente**. Verificarlas una por una. Todas las cifras salen de CSV reproducibles; no hay datos simulados. |
+| R1 Integridad: referencias verificables, sin datos fabricados | ✅ Mayormente | Referencias nuevas (marcadas con * en el informe: Cawley y Talbot, Demšar, etc.) `cawley2010` y `demsar2006` verificadas en jmlr.org el 29-oct-2026; `kapoor2024` y `lai2023` vienen de v3. Las demás las verificó el autor en el proyecto anterior. Todas las cifras salen de CSV reproducibles; no hay datos simulados. |
 | R2 Formato: plantilla UDLA, APA 7, **15–20 páginas** de cuerpo | ✅ Hecho (revisar) | `latex/informe_EF.pdf` usa `udla-capstone.cls`; el cuerpo mide **17 páginas** (cap. 1 a 7). Falta confirmar con el profesor si agradecimientos/resumen/abstract cuentan como «extras». |
 | R3 Retroalimentación de E1 incorporada | ⚠️ Pendiente de verificar | La tabla del informe usa las 9 observaciones del informe de reformulación. **Comparar con el correo original** (la rúbrica menciona estilo de redacción, uso de *captions*, debilidades de metodología). |
 | R4 Profesor Guía en portada | ✅ | Francisco Pérez; confirmar que figura en la Ficha de Inscripción. |
@@ -18,8 +18,8 @@ Escala: Excelente 100–86 (6,0–7,0) · Bien 85–73 (5,0–5,9) · Regular 72
 |---|---|---|---|---|
 | 1 | Formulación (20 %) | §1: problema, pregunta, OE1–OE4 verificables, alcance, supuestos, restricciones, criterios con umbral (Tabla 2) | Excelente/Bien alto | Mantener coherencia entre objetivos y resultados (ya están enlazados en las Tablas 2 y 4) |
 | 2 | Fundamentación (20 %) | §2: tres enfoques, Tabla 3, brecha y 4 decisiones de diseño con cita | Bien | Es la sección más corta; agregar 2–3 fuentes sobre reparación automática de código y sobre selección de variables con fuga |
-| 3 | Diseño y datos (25 %) | §3: CRISP-DM adaptado, EDA (Tabla 5, Figura 2), preparación trazable, limitaciones, plan y desviaciones | Bien/Excelente | Falta mostrar *calidad* más allá de faltantes (duplicados, outliers por dataset) |
-| 4 | Rigor y validación (10 %) | §4.1–4.2: protocolo sin fuga, métricas, línea base; avance verificable (pipeline funcionando) | Excelente/Bien | Comparar contra una línea base externa (un *linter* o una regla simple) |
+| 3 | Diseño y datos (25 %) | §3: CRISP-DM adaptado, EDA (Tabla 5, Figura 2), preparación trazable, limitaciones, plan y desviaciones | Bien/Excelente | Hecho: duplicados y atípicos por dataset (sec. 3.2) |
+| 4 | Rigor y validación (10 %) | §4.1–4.2: protocolo sin fuga, métricas, línea base; avance verificable (pipeline funcionando) | Excelente/Bien | Hecho: regla simple como línea base (Tabla 4.3). Falta un linter de terceros |
 | 5 | Interpretación (10 %) | §5: qué indica, factibilidad, limitaciones, riesgos con ajustes | Bien/Excelente | Que el autor la reescriba **con sus palabras** y pueda defenderla; la rúbrica lo exige |
 | 6 | Aplicabilidad (5 %) | §6: usuarios, decisión, implementación, requisitos, riesgos y medidas | Bien | Una prueba de uso con 2–3 personas (queda en Capstone II) |
 | 7 | Comunicación (10 %) | Figuras y tablas numeradas; referencias APA | Depende de R3 y de la plantilla | Citar **cada** figura y tabla en el texto (ya está) y mantener cifras idénticas entre texto, tablas y figuras |

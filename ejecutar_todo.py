@@ -51,6 +51,8 @@ def main():
         correr("EDA · Análisis exploratorio", "04_experiments/eda_datasets.py")
         correr("ESTADÍSTICA · Familias de modelos", "04_experiments/statistical_analysis.py")
         correr("SENSIBILIDAD · Ruido vs. fuga por selección", "04_experiments/sensibilidad_ruido.py")
+        correr("DEMO · Ejemplo visual de fuga (R3)", "04_experiments/demo_fuga.py")
+        correr("LÍNEA BASE · Regla simple", "04_experiments/linea_base_regla_simple.py")
     correr("PASO 5 · Sincronizar Skills", "05_skills/sincronizar_skills.py")
     correr("TESTS", "-m", "pytest", "08_pruebas", "-q")
     print("\n✓ Todo listo. Para la plataforma web:  streamlit run 06_web/app.py")
