@@ -33,7 +33,7 @@ cada bloque explica el origen de los datos, la lógica, la métrica o gráfico q
 | `04_experiments/` | 3–4 | Benchmark, EDA, estadística, sensibilidad al ruido, demo, línea base y evaluación independiente; `results/` guarda tablas, figuras y el manifiesto de ejecución | `run_benchmark.py` |
 | `05_skills/` | 5 | **Producto 1**: dos Agent Skills autocontenidas | `audit-ml-leakage/SKILL.md` |
 | `06_web_app/` | 5 | **Producto 2**: plataforma web en Streamlit (interfaz `app.py` + lógica `app_logic.py`) | `app.py` |
-| `07_report/` | — | Informe LaTeX (plantilla UDLA), registro de decisiones y checklist de la rúbrica | `latex/capstone_report_ef.tex` |
+| `07_report/` | — | Informe LaTeX (plantilla UDLA), presentación (`presentation/`, se regenera con `build_presentation.py`), registro de decisiones y checklist de la rúbrica | `latex/capstone_report_ef.tex` |
 | `08_tests/` | — | Pruebas automáticas y 13 casos escritos a mano (evaluación independiente) | `test_project.py` |
 
 ## Protocolo experimental en 5 fases
