@@ -38,6 +38,6 @@ Escala: Excelente 100–86 (6,0–7,0) · Bien 85–73 (5,0–5,9) · Regular 72
 ## Pendientes antes de entregar (en orden)
 1. Verificar las referencias marcadas con *.
 2. Comparar la tabla de retroalimentación con el correo de E1.
-3. ~~Pasar a la plantilla UDLA y medir las páginas~~ (hecho: 17 páginas). Completar en el PDF los dos marcadores `[COMPLETAR]` y `[PEGAR AQUÍ…]`.
+3. ~~Pasar a la plantilla UDLA y medir las páginas~~ (hecho: 17 páginas). Completar en el texto el marcador `[COMPLETAR]` de la declaración de uso de IA (el enlace de GitHub ya está).
 4. Reescribir §5 y §6 con sus palabras; completar la declaración de IA.
-5. Subir el repositorio a GitHub y pegar el enlace (lo pidió el comité; la rúbrica v2 ya no lo exige).
+5. ~~Subir el repositorio a GitHub~~ (hecho): https://github.com/witman92/ml-leakage-auditor-capstone — el enlace ya está en el Anexo A del informe.
