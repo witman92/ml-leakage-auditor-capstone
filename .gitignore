@@ -1,0 +1,21 @@
+# Cachés y temporales de Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Resultados de la corrida rápida (se regeneran con: python ejecutar_todo.py --rapido)
+04_experiments/results_rapido/
+
+# Auxiliares de compilación LaTeX (se conserva el PDF final)
+07_informe/latex/*.aux
+07_informe/latex/*.bbl
+07_informe/latex/*.bcf
+07_informe/latex/*.blg
+07_informe/latex/*.log
+07_informe/latex/*.out
+07_informe/latex/*.toc
+07_informe/latex/*.run.xml
+07_informe/latex/*.fls
+07_informe/latex/*.fdb_latexmk
+*.bcf-SAVE-ERROR
+*.bbl-SAVE-ERROR

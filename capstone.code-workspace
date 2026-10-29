@@ -1,0 +1,41 @@
+{
+  // Abra ESTE archivo con VS Code (Archivo > Abrir área de trabajo desde archivo...)
+  // y tendrá el proyecto completo, con los comandos de cada paso en Terminal > Ejecutar tarea.
+  "folders": [{ "path": ".", "name": "Auditor de fuga de datos (Capstone I)" }],
+  "settings": {
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["08_pruebas"],
+    "python.analysis.extraPaths": ["01_data", "02_pipelines", "03_auditor", "06_web"],
+    "files.exclude": { "**/__pycache__": true, "**/.pytest_cache": true },
+    "editor.rulers": [100]
+  },
+  "extensions": { "recommendations": ["ms-python.python", "ms-python.vscode-pylance"] },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      { "label": "▶ Todo el experimento (un comando)", "type": "shell", "command": "python ejecutar_todo.py", "group": "build" },
+      { "label": "▶ Todo, modo rápido (30 s)", "type": "shell", "command": "python ejecutar_todo.py --rapido" },
+      { "label": "Paso 0 · Cargar datasets", "type": "shell", "command": "python 01_data/sklearn_loader.py" },
+      { "label": "Paso 1 · Generar 96 pares", "type": "shell", "command": "python 02_pipelines/generar_pares_controlados.py" },
+      { "label": "Pasos 2-4 · Benchmark", "type": "shell", "command": "python 04_experiments/run_benchmark.py" },
+      { "label": "EDA · Análisis exploratorio", "type": "shell", "command": "python 04_experiments/eda_datasets.py" },
+      { "label": "Estadística · Familias", "type": "shell", "command": "python 04_experiments/statistical_analysis.py" },
+      { "label": "Sensibilidad · Ruido", "type": "shell", "command": "python 04_experiments/sensibilidad_ruido.py" },
+      { "label": "Paso 5 · Sincronizar Skills", "type": "shell", "command": "python 05_skills/sincronizar_skills.py" },
+      { "label": "Auditar el archivo abierto", "type": "shell", "command": "python 03_auditor/run_ast_audit.py \"${file}\"" },
+      { "label": "Reparar el archivo abierto", "type": "shell", "command": "python 03_auditor/run_ast_audit.py \"${file}\" --fix" },
+      { "label": "Plataforma web (Streamlit)", "type": "shell", "command": "streamlit run 06_web/app.py", "isBackground": true },
+      { "label": "Compilar el informe (LaTeX -> PDF)", "type": "shell", "command": "cd 07_informe/latex; latexmk -pdf -interaction=nonstopmode informe_EF.tex" },
+      { "label": "Tests", "type": "shell", "command": "python -m pytest 08_pruebas -q", "group": "test" }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      { "name": "Depurar: auditar el archivo abierto", "type": "debugpy", "request": "launch",
+        "program": "${workspaceFolder}/03_auditor/run_ast_audit.py", "args": ["${file}"], "console": "integratedTerminal" },
+      { "name": "Depurar: archivo actual", "type": "debugpy", "request": "launch",
+        "program": "${file}", "console": "integratedTerminal" }
+    ]
+  }
+}

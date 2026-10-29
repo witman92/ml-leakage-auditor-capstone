@@ -1,0 +1,5 @@
+fuga,n_leaky,recall_ast,recall_runtime,falsos_positivos_ast,falsos_positivos_runtime
+COMBINADA,24,1.0,1.0,0,0
+ESCALADO,24,1.0,1.0,0,0
+IMPUTACION,24,1.0,1.0,0,0
+SELECCION,24,1.0,1.0,0,0

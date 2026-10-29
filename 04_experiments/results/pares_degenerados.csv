@@ -1,0 +1,2 @@
+dataset,tarea,familia,fuga,metrica,degenerado,M_leaky,M_clean,delta_opt,diff_reparado_vs_clean
+D5,regresion,MLP,COMBINADA,r2,True,-3.858241247227671,-0.805524479254055,-3.052716767973616,0.0

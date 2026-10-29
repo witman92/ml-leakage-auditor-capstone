@@ -1,0 +1,9 @@
+tarea,familia,n_pares,n_pares_no_cero,delta_opt_medio,mediana,d_cohen_dz,p_wilcoxon_unilateral,p_t_unilateral
+clasificacion,GB,9,4,0.00053,0.0,0.44,0.1875,0.1126
+clasificacion,LIN,9,6,4e-05,0.0,0.29,0.1562,0.2074
+clasificacion,MLP,9,7,0.00012,0.00017,0.09,0.3438,0.3989
+clasificacion,RF,9,7,0.00033,0.0,0.43,0.1484,0.1188
+regresion,GB,9,8,0.00623,1e-05,0.32,0.3711,0.1833
+regresion,LIN,9,9,0.00825,0.0,0.34,0.2852,0.1681
+regresion,MLP,9,9,0.01687,0.00739,0.65,0.0371,0.0444
+regresion,RF,9,8,0.00418,0.0,0.29,0.3203,0.2027
